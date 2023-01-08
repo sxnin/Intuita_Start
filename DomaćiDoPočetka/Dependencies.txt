@@ -1,0 +1,6 @@
+conda install -c conda-forge ipython-sql
+conda install -c conda-forge sql-magic
+conda install -c blaze sqlite3
+conda config --add channels conda-forge
+conda config --set channel_priority strict
+

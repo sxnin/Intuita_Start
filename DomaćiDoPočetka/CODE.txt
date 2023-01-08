@@ -1,0 +1,97 @@
+##################################
+                                        CODE
+##################################
+
+# import libraries
+import pandas as pd
+import sqlite3
+
+# create db connection
+cnn = sqlite3.connect('world_cup.db')
+get_ipython().run_line_magic('load_ext', 'sql')
+get_ipython().run_line_magic('sql', 'sqlite:///world_cup.db')
+
+# create a variable to store the url
+w_cup_url = 'https://en.wikipedia.org/wiki/List_of...
+
+# create variable to store list of dataframes in the website
+w_cup_df = pd.read_html(w_cup_url)
+
+# create variable to store countries url
+countries_url='https://en.wikipedia.org/wiki/List_of...
+
+# create a variable to store list of dataframes in country site
+countries_df = pd.read_html(countries_url)
+w_cup_df[2].head(5)
+w_cup_df = w_cup_df[2][['Year','Winners','Runners-up']
+
+# drop rows with invalid data
+w_cup_df.drop([3,4,23,24,25,26], inplace = True)
+w_cup_df.at[5,'Year']=1950
+w_cup_df.reset_index(drop= True, inplace = True)
+w_cup_df
+
+# review countries dataframe 
+countries_df = countries_df[3].iloc[:,[0,1]].drop ([233])
+countries_df.head()
+countries_df.columns
+
+countries_df.columns = ['country', 'region']
+countries_df.head()
+
+# write world cup table to database
+w_cup_df.to_sql('world_cup', cnn)
+get_ipython().run_cell_magic('sql', '', '\nSELECT * FROM world_cup')
+
+# Single Table Queries
+get_ipython().run_cell_magic('sql', '', '\nSELECT * FROM world_cup')
+w_cup_df
+
+# select certain columns in a table
+get_ipython().run_cell_magic('sql', '', '\nselect winners, year\nfrom world_cup')
+w_cup_df[['Winners', 'Year']]
+w_cup_df.iloc[:,[1,0]]
+w_cup_df.loc[:,['Winners','Year']]
+
+# select distict rows
+get_ipython().run_cell_magic('sql', '', '\nSELECT DISTINCT winners\nFROM world_cup')
+w_cup_df['Winners'].drop_duplicates()
+
+# sorting columns
+get_ipython().run_cell_magic('sql', '', '\nSELECT * FROM world_cup\nORDER BY Year DESC')
+w_cup_df.sort_values('Year' , ascending=False)
+w_cup_df.info()
+w_cup_df['Year'] = w_cup_df['Year'].astype('int64')
+w_cup_df.sort_values('Year' , ascending=False)
+
+# Select First N Elements
+get_ipython().run_cell_magic('sql', '', '\nSELECT * FROM world_cup\nLIMIT 5')
+w_cup_df.sort_values('Year', ascending = True).head()
+w_cup_df.iloc[0:5,:]
+
+# LIMIT With OFFSET
+get_ipython().run_cell_magic('sql', '', '\nSELECT * FROM world_cup\nLIMIT 5 OFFSET 1')
+w_cup_df.iloc[1:6,:]
+
+# Select Last N Elements
+get_ipython().run_cell_magic('sql', '', '\nSELECT * FROM world_cup\nORDER BY Year DESC\nLIMIT 5')
+w_cup_df.sort_values('Year', ascending = False).head(5)
+w_cup_df.iloc[-5:,:].sort_values('Year', ascending = False)
+
+# Last N with OFFSET
+get_ipython().run_cell_magic('sql', '', '\nSELECT * FROM world_cup\nORDER BY Year DESC\nLIMIT 5 OFFSET 1')
+w_cup_df.iloc[-6:-1,:].sort_values('Year', ascending = False)
+
+# Rename Columns
+get_ipython().run_cell_magic('sql', '', '\nSELECT Year, Winners as champions FROM world_cup\nORDER BY Year DESC\nLIMIT 5 OFFSET 1')
+w_cup_df.iloc[-6:-1,:2].sort_values('Year', ascending = False)                      .rename(columns={'Winners':'champions'})
+
+# Filtering - SQL WHERE
+get_ipython().run_cell_magic('sql', '', "\nSELECT * FROM world_cup\nWHERE winners = 'Brazil'")
+w_cup_df[w_cup_df.Winners=='Brazil']
+w_cup_df.query("Winners=='Brazil'")
+
+# WHERE with Multiple criteria
+get_ipython().run_cell_magic('sql', '', "\nSELECT * FROM world_cup\nWHERE winners IN ('Brazil', 'Argentina')")
+w_cup_df[w_cup_df.Winners.isin(['Brazil', 'Argentina'])]
+w_cup_df.query("Winners==['Brazil', 'Argentina']")
